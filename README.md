@@ -1,3 +1,0 @@
-# czchat
-wangkun
-asdf sdf
