@@ -615,11 +615,16 @@ var RongWebIMWidget;
                         alert("请先选择一个会话目标。");
                         return;
                     }
-                    _this.RongIMSDKServer.registerMessage("Goodlist")
-                    console.log(RongIMLib)
+                    registerMsg("Goodslist");
+                    var con = {
+                        url:'http://www.cz10000.com',
+                        gid:123,
+                        money:100,
+                        title:'Adidas阿迪达斯男包女包电脑包休闲户外多功能旅游包背包书'
+                    };
+                    var msg =  new RongIMClient.RegisterMessage.Goodslist(con);
+                    console.log(msg)
                     return false;
-                    var con = $("#rong-goodslist").html();
-                    var msg = RongIMLib.TextMessage.obtain(con);
                     var userinfo = new RongIMLib.UserInfo(providerdata.currentUserInfo.userId, providerdata.currentUserInfo.name, providerdata.currentUserInfo.portraitUri);
                     msg.user = userinfo;
                     try {
@@ -3169,3 +3174,10 @@ angular.module('RongWebIMWidget').run(['$templateCache', function($templateCache
   );
 
 }]);
+function registerMsg(type){
+    var messageName = type; // 消息名称。
+    var objectName = "s:" + type; // 消息内置名称，请按照此格式命名 *:* 。
+    var mesasgeTag = new RongIMLib.MessageTag(true,true); //true true 保存且计数，false false 不保存不计数。
+    var propertys = ["title", "url", "content", "imageUrl", "extra",'gid','money']; // 消息类中的属性名。
+    RongIMClient.registerMessageType(messageName,objectName,mesasgeTag,propertys);
+}
