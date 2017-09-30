@@ -1,0 +1,48 @@
+#rong-goodslist{
+    position: relative;
+    display: inline-block;
+}
+#rong-goodslist .mm {
+    min-height: 20px;
+    height: 20px;
+    word-break: break-all;
+    word-wrap: break-word;
+    background: #d8e8f9;;
+}
+#rong-goodslist .cont .list {
+    padding:10px;
+    font-size: 1rem;
+    border-radius: 5px;
+}
+#rong-goodslist .p-list .list-tmb {
+    float: left;
+    margin-right: -60px;
+}
+#rong-goodslist  .p-list .list-txt {
+    display: block;
+    margin-left: 60px;
+}
+#rong-goodslist .list-txt span {
+    display: block;
+    line-height: 20px;
+    color: #333;
+}
+
+.list-li .btn {
+    position: absolute;
+    right: 15px;
+    bottom: 0;
+}
+.list-li .btn a.btn-1 {
+    background: #fff;
+    border: 1px solid #d5d5d5;
+}
+.list-li .btn a {
+    background: url(../../img/chat/icon01.png) left -72px no-repeat;
+    display: inline-block;
+    text-align: center;
+    width: 52px;
+    height: 22px;
+    line-height: 22px;
+    color: #000;
+}

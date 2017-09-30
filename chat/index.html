@@ -6,13 +6,14 @@
 
     <link rel="stylesheet" type="text/css" href="../vendor/jqueryrebox/jquery-rebox-0.1.0.css"/>
     <link rel="stylesheet" type="text/css" href="../css/RongIMWidget.css"/>
+    <link rel="stylesheet" type="text/css" href="../css/style.css"/>
 
   </head>
   <body>
-
+  <input type="hidden" id="gooodslistid" value="123">
     <div ng-app="czchat">
       <div  ng-controller="main">
-        <button ng-click="show()">客服</button>
+        <!--<button ng-click="show()">客服</button>-->
         <rong-widget></rong-widget>
       </div>
     </div>
@@ -25,7 +26,7 @@
     <script src="../js/RongEmoji-2.2.5.min.js"></script>
     <script src="../js/Libamr-2.2.5.min.js"></script>
     <script src="../js/RongIMVoice-2.2.5.min.js"></script>
-    
+
     <!-- 上传插件 -->
     <script src="../vendor/plupload.full.min-2.1.1.js"></script>
     <script src="../vendor/qiniu-1.0.17.js"></script>

@@ -537,6 +537,7 @@ var RongWebIMWidget;
                         qiniuuploader && qiniuuploader.destroy();
                     }
                 });
+                //输入改变时改变信息
                 $scope.$watch("conversation.messageContent", function (newVal, oldVal) {
                     if (newVal === oldVal)
                         return;
@@ -586,6 +587,38 @@ var RongWebIMWidget;
                         return;
                     }
                     var con = RongIMLib.RongIMEmoji.symbolToEmoji($scope.conversation.messageContent);
+                    var msg = RongIMLib.TextMessage.obtain(con);
+                    var userinfo = new RongIMLib.UserInfo(providerdata.currentUserInfo.userId, providerdata.currentUserInfo.name, providerdata.currentUserInfo.portraitUri);
+                    msg.user = userinfo;
+                    try {
+                        RongIMLib.RongIMClient.getInstance().sendMessage(+$scope.conversation.targetType, $scope.conversation.targetId, msg, {
+                            onSuccess: function (retMessage) {
+                                conversationListServer.updateConversations().then(function () {
+                                });
+                            },
+                            onError: function (error) {
+                            }
+                        });
+                    }
+                    catch (e) {
+                    }
+                    var content = _this.packDisplaySendMessage(msg, RongWebIMWidget.MessageType.TextMessage);
+                    var cmsg = RongWebIMWidget.Message.convert(content);
+                    conversationServer._addHistoryMessages(cmsg);
+                    $scope.scrollBar();
+                    $scope.conversation.messageContent = "";
+                    var obj = document.getElementById("inputMsg");
+                    RongWebIMWidget.Helper.getFocus(obj);
+                };
+                $scope.g_send = function () {
+                    if (!$scope.conversation.targetId || !$scope.conversation.targetType) {
+                        alert("请先选择一个会话目标。");
+                        return;
+                    }
+                    _this.RongIMSDKServer.registerMessage("Goodlist")
+                    console.log(RongIMLib)
+                    return false;
+                    var con = $("#rong-goodslist").html();
                     var msg = RongIMLib.TextMessage.obtain(con);
                     var userinfo = new RongIMLib.UserInfo(providerdata.currentUserInfo.userId, providerdata.currentUserInfo.name, providerdata.currentUserInfo.portraitUri);
                     msg.user = userinfo;
@@ -1645,10 +1678,13 @@ var RongWebIMWidget;
             var _this = this;
             var eleconversation = document.getElementById("rong-conversation");
             var eleconversationlist = document.getElementById("rong-conversation-list");
+            var elegoodslist = document.getElementById("rong-goodslist");
             var eleminbtn = document.getElementById("rong-widget-minbtn");
+
             if (_this.widgetConfig.__isKefu) {
                 eleminbtn = document.getElementById("rong-widget-minbtn-kefu");
             }
+
             if (defaultStyle) {
                 eleconversation.style["height"] = defaultStyle.height + "px";
                 eleconversation.style["width"] = defaultStyle.width + "px";
@@ -1715,6 +1751,12 @@ var RongWebIMWidget;
                     eleminbtn.style["bottom"] = defaultStyle.bottom + "px";
                     eleminbtn.style["left"] = defaultStyle.left + defaultStyle.width / 2 - eleminbtnWidth / 2 + "px";
                     eleminbtn.style["right"] = defaultStyle.right + defaultStyle.width / 2 - eleminbtnWidth / 2 + "px";
+                }
+                if(_this.widgetConfig.goodslist!=null && _this.widgetConfig.goodslist!=""){
+                    elegoodslist.style['display']='block';
+                }
+                else{
+                    elegoodslist.style['display']='none';
                 }
             }
             if (_this.widgetConfig.displayMinButton == false) {
@@ -3023,7 +3065,7 @@ var RongWebIMWidget;
             var messageName = "ProductMessage"; // 消息名称。
             var objectName = "cs:product"; // 消息内置名称，请按照此格式命名。
             var mesasgeTag = new RongIMLib.MessageTag(true, true); // 消息是否保存是否计数，true true 保存且计数，false false 不保存不计数。
-            var propertys = ["title", "url", "content", "imageUrl", "extra"]; // 消息类中的属性名。
+            var propertys = ["title", "url", "content", "imageUrl", "extra",'gid']; // 消息类中的属性名。
             RongIMLib.RongIMClient.registerMessageType(messageName, objectName, mesasgeTag, propertys);
         };
         RongIMSDKServer.$inject = ["$q"];
@@ -3077,6 +3119,7 @@ var RongWebIMWidget;
             this.desktopNotification = false;
             this.reminder = "";
             this.voiceNotification = false;
+            this.goodslist = '';
             this.style = {
                 positionFixed: false,
                 width: 450,
@@ -3088,6 +3131,7 @@ var RongWebIMWidget;
             this.hiddenConversations = [];
             this.__isKefu = false;
         }
+
         return WidgetConfig;
     })();
     RongWebIMWidget.WidgetConfig = WidgetConfig;
@@ -3100,7 +3144,13 @@ angular.module('RongWebIMWidget').run(['$templateCache', function($templateCache
   'use strict';
 
   $templateCache.put('./ts/conversation/conversation.tpl.html',
-    "<div id=rong-conversation class=\"rongcloud-kefuChatBox rongcloud-both rongcloud-am-fade-and-slide-top\" ng-show=showSelf ng-class=\"{'rongcloud-fullScreen':resoures.fullScreen}\"><evaluatedir type=evaluate.type display=evaluate.showSelf confirm=evaluate.onConfirm(data) cancle=evaluate.onCancle()></evaluatedir><div class=rongcloud-kefuChat><div id=header class=\"rongcloud-rong-header rongcloud-blueBg rongcloud-online\"><div class=\"rongcloud-infoBar rongcloud-pull-left\"><div class=rongcloud-infoBarTit><span class=rongcloud-kefuName ng-bind=conversation.title></span></div></div><div class=\"rongcloud-toolBar rongcloud-headBtn rongcloud-pull-right\"><div ng-show=!config.displayConversationList&&config.voiceNotification class=rongcloud-voice ng-class=\"{'rongcloud-voice-mute':!data.voiceSound,'rongcloud-voice-sound':data.voiceSound}\" ng-click=\"data.voiceSound=!data.voiceSound\"></div><a href=javascript:; class=\"rongcloud-kefuChatBoxHide rongcloud-sprite\" style=margin-right:6px ng-show=!config.displayConversationList ng-click=minimize() title=隐藏></a> <a href=javascript:; class=\"rongcloud-kefuChatBoxClose rongcloud-sprite\" ng-click=close() title=结束对话></a></div></div><div class=rongcloud-outlineBox ng-hide=data.connectionState><div class=rongcloud-sprite></div><span>连接断开,请刷新重连</span></div><div id=Messages><div class=rongcloud-emptyBox>暂时没有新消息</div><div class=rongcloud-MessagesInner><div ng-repeat=\"item in messageList\" ng-switch=item.panelType><div class=rongcloud-Messages-date ng-switch-when=104><b>{{item.sentTime|historyTime}}</b></div><div class=rongcloud-Messages-history ng-switch-when=105><b ng-click=getHistory()>查看历史消息</b></div><div class=rongcloud-Messages-history ng-switch-when=106><b ng-click=getMoreMessage()>获取更多消息</b></div><div class=rongcloud-sys-tips ng-switch-when=2><span ng-bind-html=item.content.content|trustHtml></span></div><div class=\"rongcloud-Message rongcloud-clearfix\" ng-class=\"{'rongcloud-Message-send': item.messageDirection == 1}\" ng-switch-when=1><div class=rongcloud-Messages-unreadLine></div><div><div class=rongcloud-Message-header><img class=\"rongcloud-img rongcloud-u-isActionable rongcloud-Message-avatar rongcloud-avatar\" ng-src={{item.content.userInfo.portraitUri||item.content.userInfo.icon}} err-src=http://7xo1cb.com1.z0.glb.clouddn.com/rongcloudkefu2.png errsrcserasdfasdfasdfa alt=\"\"><div class=\"rongcloud-Message-author rongcloud-clearfix\" ng-if=\"item.messageDirection == 2\"><a class=\"rongcloud-author rongcloud-u-isActionable\">{{item.content.userInfo.name}}</a></div></div></div><div class=rongcloud-Message-body ng-switch=item.messageType><textmessage ng-switch-when=TextMessage msg=item.content></textmessage><imagemessage ng-switch-when=ImageMessage msg=item.content></imagemessage><voicemessage ng-switch-when=VoiceMessage msg=item.content></voicemessage><locationmessage ng-switch-when=LocationMessage msg=item.content></locationmessage><richcontentmessage ng-switch-when=RichContentMessage msg=item.content></richcontentmessage></div></div></div></div></div><div id=footer class=rongcloud-rong-footer style=\"display: block\"><div class=rongcloud-footer-con><div class=rongcloud-text-layout><div id=funcPanel class=\"rongcloud-funcPanel rongcloud-robotMode\"><div class=rongcloud-mode1 ng-show=\"_inputPanelState==0\"><div class=rongcloud-MessageForm-tool id=expressionWrap><i class=\"rongcloud-sprite rongcloud-iconfont-smile\" ng-click=\"showemoji=!showemoji\"></i><div class=rongcloud-expressionWrap ng-show=showemoji><i class=rongcloud-arrow></i><emoji ng-repeat=\"item in emojiList\" item=item content=conversation></emoji></div></div><div class=rongcloud-MessageForm-tool><i class=\"rongcloud-sprite rongcloud-iconfont-upload\" id=upload-file style=\"position: relative; z-index: 1\"></i></div></div><div class=rongcloud-mode2 ng-show=\"_inputPanelState==2\"><a ng-click=switchPerson() id=chatSwitch class=rongcloud-chatSwitch>转人工服务</a></div></div><pre id=inputMsg class=\"rongcloud-text rongcloud-grey\" contenteditable contenteditable-dire ng-focus=\"showemoji=fase\" style=\"background-color: rgba(0,0,0,0);color:black\" ctrl-enter-keys fun=send() ctrlenter=false placeholder=请输入文字... ondrop=\"return false\" ng-model=conversation.messageContent></pre></div><div class=rongcloud-powBox><button type=button style=\"background-color: #0099ff\" class=\"rongcloud-rong-btn rongcloud-rong-send-btn\" id=rong-sendBtn ng-click=send()>发送</button></div></div></div></div></div>"
+    "<div id=rong-conversation class=\"rongcloud-kefuChatBox rongcloud-both rongcloud-am-fade-and-slide-top\" ng-show=showSelf ng-class=\"{'rongcloud-fullScreen':resoures.fullScreen}\"><evaluatedir type=evaluate.type display=evaluate.showSelf confirm=evaluate.onConfirm(data) cancle=evaluate.onCancle()></evaluatedir><div class=rongcloud-kefuChat><div id=header class=\"rongcloud-rong-header rongcloud-blueBg rongcloud-online\"><div class=\"rongcloud-infoBar rongcloud-pull-left\"><div class=rongcloud-infoBarTit><span class=rongcloud-kefuName ng-bind=conversation.title></span></div></div><div class=\"rongcloud-toolBar rongcloud-headBtn rongcloud-pull-right\"><div ng-show=!config.displayConversationList&&config.voiceNotification class=rongcloud-voice ng-class=\"{'rongcloud-voice-mute':!data.voiceSound,'rongcloud-voice-sound':data.voiceSound}\" ng-click=\"data.voiceSound=!data.voiceSound\"></div><a href=javascript:; class=\"rongcloud-kefuChatBoxHide rongcloud-sprite\" style=margin-right:6px ng-show=!config.displayConversationList ng-click=minimize() title=隐藏></a> <a href=javascript:; class=\"rongcloud-kefuChatBoxClose rongcloud-sprite\" ng-click=close() title=结束对话></a></div></div><div class=rongcloud-outlineBox ng-hide=data.connectionState><div class=rongcloud-sprite></div><span>连接断开,请刷新重连</span></div><div id=Messages><div class=rongcloud-emptyBox>暂时没有新消息</div><div class=rongcloud-MessagesInner><div ng-repeat=\"item in messageList\" ng-switch=item.panelType><div class=rongcloud-Messages-date ng-switch-when=104><b>{{item.sentTime|historyTime}}</b></div><div class=rongcloud-Messages-history ng-switch-when=105><b ng-click=getHistory()>查看历史消息</b></div><div class=rongcloud-Messages-history ng-switch-when=106><b ng-click=getMoreMessage()>获取更多消息</b></div><div class=rongcloud-sys-tips ng-switch-when=2><span ng-bind-html=item.content.content|trustHtml></span></div><div class=\"rongcloud-Message rongcloud-clearfix\" ng-class=\"{'rongcloud-Message-send': item.messageDirection == 1}\" ng-switch-when=1><div class=rongcloud-Messages-unreadLine></div><div><div class=rongcloud-Message-header><img class=\"rongcloud-img rongcloud-u-isActionable rongcloud-Message-avatar rongcloud-avatar\" ng-src={{item.content.userInfo.portraitUri||item.content.userInfo.icon}} err-src=http://7xo1cb.com1.z0.glb.clouddn.com/rongcloudkefu2.png errsrcserasdfasdfasdfa alt=\"\"><div class=\"rongcloud-Message-author rongcloud-clearfix\" ng-if=\"item.messageDirection == 2\"><a class=\"rongcloud-author rongcloud-u-isActionable\">{{item.content.userInfo.name}}</a></div></div></div><div class=rongcloud-Message-body ng-switch=item.messageType><textmessage ng-switch-when=TextMessage msg=item.content></textmessage><imagemessage ng-switch-when=ImageMessage msg=item.content></imagemessage><voicemessage ng-switch-when=VoiceMessage msg=item.content></voicemessage><locationmessage ng-switch-when=LocationMessage msg=item.content></locationmessage><richcontentmessage ng-switch-when=RichContentMessage msg=item.content></richcontentmessage></div></div></div></div>" +
+    "<div id=rong-goodslist><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tbody>" +
+    "<tr><td class=\"mm\"><div class=\"cont\" id=\"pid_1506742095000\"><span data-rendersku=\"10266172552sku1506742095000\" style=\"display: block;\">" +
+    "<div class=\"list p-list\"><div class=\"list-li\"><a class=\"list-li-a\" href=\"//item.jd.com/10266172552.html\"><span class=\"list-tmb\">" +
+    "<img src=\"//img10.360buyimg.com/N4/jfs/t8923/6/2251880256/488440/378a21c2/59c86996N17c1d2b1.jpg\" height=\"60\" width=\"60\"></span><span class=\"list-txt\">" +
+    "<span>商品编号：10266172552</span><span>商品名称：Adidas阿迪达斯男包女包电脑包休闲户外多功能旅游包背包</span></span></a><span class=\"btn\"><a  pidurl=\"\" gid=\"1509529652\"   href=\"javascript:;\" class=\"btn-1\" ng-click=g_send()>发送</a></span></div></div></span></div></td></tr></tbody></table></div>" +
+    "</div><div id=footer class=rongcloud-rong-footer style=\"display: block\"><div class=rongcloud-footer-con><div class=rongcloud-text-layout><div id=funcPanel class=\"rongcloud-funcPanel rongcloud-robotMode\"><div class=rongcloud-mode1 ng-show=\"_inputPanelState==0\"><div class=rongcloud-MessageForm-tool id=expressionWrap><i class=\"rongcloud-sprite rongcloud-iconfont-smile\" ng-click=\"showemoji=!showemoji\"></i><div class=rongcloud-expressionWrap ng-show=showemoji><i class=rongcloud-arrow></i><emoji ng-repeat=\"item in emojiList\" item=item content=conversation></emoji></div></div><div class=rongcloud-MessageForm-tool><i class=\"rongcloud-sprite rongcloud-iconfont-upload\" id=upload-file style=\"position: relative; z-index: 1\"></i></div></div><div class=rongcloud-mode2 ng-show=\"_inputPanelState==2\"><a ng-click=switchPerson() id=chatSwitch class=rongcloud-chatSwitch>转人工服务</a></div></div><pre id=inputMsg class=\"rongcloud-text rongcloud-grey\" contenteditable contenteditable-dire ng-focus=\"showemoji=fase\" style=\"background-color: rgba(0,0,0,0);color:black\" ctrl-enter-keys fun=send() ctrlenter=false placeholder=请输入文字... ondrop=\"return false\" ng-model=conversation.messageContent></pre></div><div class=rongcloud-powBox><button type=button style=\"background-color: #0099ff\" class=\"rongcloud-rong-btn rongcloud-rong-send-btn\" id=rong-sendBtn ng-click=send()>发送</button></div></div></div></div></div>"
   );
 
 
